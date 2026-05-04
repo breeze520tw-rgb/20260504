@@ -6,6 +6,7 @@ let stars = [];
 function preload() {
   // 載入 ml5 faceMesh 模型
   faceMesh = ml5.faceMesh();
+  console.log("FaceMesh 模型載入中...");
 }
 
 function setup() {
@@ -16,6 +17,7 @@ function setup() {
   // 隱藏預設產生的 HTML 影片元件，只在畫布上顯示
   capture.hide();
   // 開始偵測臉部
+  console.log("嘗試啟動偵測...");
   faceMesh.detectStart(capture, gotFaces);
   
   reinitStars();
@@ -34,13 +36,15 @@ function reinitStars() {
 }
 
 function gotFaces(results) {
+  if (faces.length === 0 && results.length > 0) {
+    console.log("偵測到臉部！");
+  }
   faces = results;
 }
 
 function draw() {
-  background(0); // 改為黑色背景
-
   // 1. 防錯檢查：確保攝影機已啟動且影像寬度大於 0
+  background(0);
   if (capture.width === 0 || capture.height === 0) {
     fill(255);
     textAlign(CENTER, CENTER);
@@ -131,7 +135,6 @@ function draw() {
     // 重設發光效果，避免影響到後續其他的繪製動作
     drawingContext.shadowBlur = 0;
   }
-  pop();
 
   // 如果視窗大小改變，重新初始化星星（防止畫面空白）
   if (stars.length === 0) {
@@ -146,11 +149,13 @@ function draw() {
     star.opacity = constrain(star.opacity, 50, 255);
     
     // 只在臉部顯示區域（中央 50% 寬高）以外的地方繪製星星
-    if (star.x < width * 0.25 || star.x > width * 0.75 || star.y < height * 0.25 || star.y > height * 0.75) {
+    // 稍微放寬判定，讓視覺更自然
+    if (star.x < width * 0.2 || star.x > width * 0.8 || star.y < height * 0.2 || star.y > height * 0.8) {
       fill(255, star.opacity);
       circle(star.x, star.y, star.size);
     }
   }
+  pop();
 }
 
 function windowResized() {
