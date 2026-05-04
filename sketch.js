@@ -54,6 +54,15 @@ function draw() {
     circle(star.x, star.y, star.size);
   }
 
+  // 將文字顯示移到這裡，確保無論攝影機是否啟動都會顯示
+  push();
+  fill(255);          // 白色
+  noStroke();         // 確保文字沒有外框線
+  textSize(32);       // 設定文字大小
+  textAlign(CENTER, TOP); 
+  text("414xxx183\n王o崴", width / 2, 20); // \n 代表換行
+  pop();
+
   // 2. 檢查攝影機與臉部偵測
   if (capture.width < 10 || capture.height < 10) {
     fill(255);
@@ -143,15 +152,6 @@ function draw() {
     // 重設發光效果，避免影響到後續其他的繪製動作
     drawingContext.shadowBlur = 0;
   }
-  pop();
-
-  // 在畫面上方正中間顯示兩行白色文字
-  push();
-  fill(255);          // 白色
-  noStroke();         // 確保文字沒有外框線
-  textSize(32);       // 設定文字大小
-  textAlign(CENTER, TOP); 
-  text("414xxx183\n王o崴", width / 2, 20); // \n 代表換行
   pop();
 
   if (stars.length === 0) reinitStars();
