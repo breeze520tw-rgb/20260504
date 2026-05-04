@@ -1,6 +1,7 @@
 let capture;
 let faceMesh;
 let faces = [];
+let stars = [];
 
 function preload() {
   // 載入 ml5 faceMesh 模型
@@ -16,6 +17,16 @@ function setup() {
   capture.hide();
   // 開始偵測臉部
   faceMesh.detectStart(capture, gotFaces);
+
+  // 初始化星星位置
+  for (let i = 0; i < 400; i++) {
+    stars.push({
+      x: random(width),
+      y: random(height),
+      size: random(1, 3),
+      opacity: random(100, 255)
+    });
+  }
 }
 
 function gotFaces(results) {
@@ -23,7 +34,14 @@ function gotFaces(results) {
 }
 
 function draw() {
-  background('#e7c6ff');
+  background(0); // 改為黑色背景
+
+  // 繪製星星
+  noStroke();
+  for (let star of stars) {
+    fill(255, star.opacity);
+    circle(star.x, star.y, star.size);
+  }
 
   push();
   // 移動座標原點至畫布中心
@@ -46,12 +64,22 @@ function draw() {
       // 右眼外圈 (包含 247 系列點，末尾連回首點以閉合)
       [247, 30, 29, 27, 28, 56, 190, 243, 112, 26, 22, 23, 24, 110, 25, 130, 247],
       // 右眼內圈 (包含 246 系列點，末尾連回首點以閉合)
-      [246, 161, 160, 159, 158, 157, 173, 133, 155, 154, 153, 145, 144, 163, 7, 33, 246]
+      [246, 161, 160, 159, 158, 157, 173, 133, 155, 154, 153, 145, 144, 163, 7, 33, 246],
+      // 左眼外圈 (包含 467 系列點，末尾連回首點以閉合)
+      [467, 260, 259, 257, 258, 286, 414, 463, 341, 256, 252, 253, 254, 339, 255, 359, 467],
+      // 左眼內圈 (包含 466 系列點，末尾連回首點以閉合)
+      [466, 388, 387, 386, 385, 384, 398, 362, 382, 381, 380, 374, 373, 390, 249, 263, 466],
+      // 臉部最外層輪廓 (Silhouette)，末尾連回首點 10 以閉合
+      [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109, 10]
     ];
     
     stroke(255, 0, 0); // 設定線條顏色為紅色
     strokeWeight(1);   // 設定線條粗細為 1
     noFill();
+
+    // 加入霓虹燈發光效果
+    drawingContext.shadowBlur = 15;          // 發光的程度
+    drawingContext.shadowColor = color(255, 0, 0); // 發光的顏色 (紅色)
 
     for (let indices of paths) {
       for (let i = 0; i < indices.length - 1; i++) {
@@ -68,6 +96,9 @@ function draw() {
         }
       }
     }
+    
+    // 重設發光效果，避免影響到後續其他的繪製動作
+    drawingContext.shadowBlur = 0;
   }
   pop();
 }
