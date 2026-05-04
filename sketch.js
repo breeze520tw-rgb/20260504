@@ -17,8 +17,12 @@ function setup() {
   capture.hide();
   // 開始偵測臉部
   faceMesh.detectStart(capture, gotFaces);
+  
+  reinitStars();
+}
 
-  // 初始化星星位置
+function reinitStars() {
+  stars = [];
   for (let i = 0; i < 400; i++) {
     stars.push({
       x: random(width),
@@ -35,6 +39,14 @@ function gotFaces(results) {
 
 function draw() {
   background(0); // 改為黑色背景
+
+  // 1. 防錯檢查：確保攝影機已啟動且影像寬度大於 0
+  if (capture.width === 0 || capture.height === 0) {
+    fill(255);
+    textAlign(CENTER, CENTER);
+    text("正在啟動攝影機與 AI 模型...", width / 2, height / 2);
+    return;
+  }
 
   push();
   // 移動座標原點至畫布中心
@@ -121,6 +133,11 @@ function draw() {
   }
   pop();
 
+  // 如果視窗大小改變，重新初始化星星（防止畫面空白）
+  if (stars.length === 0) {
+    reinitStars();
+  }
+
   // 在遮罩繪製完成後再繪製星星，這樣星星才會出現在外層黑色背景之上
   noStroke();
   for (let star of stars) {
@@ -134,4 +151,9 @@ function draw() {
       circle(star.x, star.y, star.size);
     }
   }
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  reinitStars();
 }
