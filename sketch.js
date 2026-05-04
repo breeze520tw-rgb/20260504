@@ -43,9 +43,19 @@ function gotFaces(results) {
 }
 
 function draw() {
-  // 1. 防錯檢查：確保攝影機已啟動且影像寬度大於 0
   background(0);
-  if (capture.width === 0 || capture.height === 0) {
+
+  // 1. 繪製星空背景 (最底層)
+  noStroke();
+  for (let star of stars) {
+    star.opacity += random(-15, 15);
+    star.opacity = constrain(star.opacity, 100, 255);
+    fill(255, star.opacity);
+    circle(star.x, star.y, star.size);
+  }
+
+  // 2. 檢查攝影機與臉部偵測
+  if (capture.width < 10 || capture.height < 10) {
     fill(255);
     textAlign(CENTER, CENTER);
     text("正在啟動攝影機與 AI 模型...", width / 2, height / 2);
@@ -53,44 +63,32 @@ function draw() {
   }
 
   push();
-  // 移動座標原點至畫布中心
   translate(width / 2, height / 2);
-  // 水平反轉影像 (達成左右顛倒的鏡像效果)
-  scale(-1, 1);
-  // 設定影像繪製模式為中心
-  imageMode(CENTER);
-  // 繪製影像，寬高為全螢幕畫面的 50%
+  scale(-1, 1); // 鏡像
+
   let imgW = width * 0.5;
   let imgH = height * 0.5;
-  image(capture, 0, 0, imgW, imgH);
 
-  // 建立遮罩：將臉部輪廓以外的地方塗黑
   if (faces.length > 0) {
     let face = faces[0];
     let silhouette = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109, 10];
     
+    // 3. 裁切影像：讓攝影機影像只顯示在臉部輪廓內
     push();
-    fill(0); // 設定遮罩顏色為黑色
-    noStroke();
-    
+    beginClip();
     beginShape();
-    // 外部邊框：涵蓋整個畫布
-    vertex(-width, -height);
-    vertex(width, -height);
-    vertex(width, height);
-    vertex(-width, height);
-    
-    // 內部孔洞：臉部外輪廓
-    beginContour();
     for (let i of silhouette) {
       let pt = face.keypoints[i];
       vertex(map(pt.x, 0, capture.width, -imgW / 2, imgW / 2), map(pt.y, 0, capture.height, -imgH / 2, imgH / 2));
     }
-    endContour();
     endShape(CLOSE);
+    endClip();
+
+    imageMode(CENTER);
+    image(capture, 0, 0, imgW, imgH);
     pop();
 
-  // 繪製指定的臉部連線 (唇部輪廓)
+    // 4. 繪製霓虹效果線條
     let paths = [
       [409, 270, 269, 267, 0, 37, 39, 40, 185, 61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291],
       [76, 77, 90, 180, 85, 16, 315, 404, 320, 307, 306, 408, 304, 303, 302, 11, 72, 73, 74, 184],
@@ -135,27 +133,9 @@ function draw() {
     // 重設發光效果，避免影響到後續其他的繪製動作
     drawingContext.shadowBlur = 0;
   }
-
-  // 如果視窗大小改變，重新初始化星星（防止畫面空白）
-  if (stars.length === 0) {
-    reinitStars();
-  }
-
-  // 在遮罩繪製完成後再繪製星星，這樣星星才會出現在外層黑色背景之上
-  noStroke();
-  for (let star of stars) {
-    // 讓星星閃爍（透過隨機改變透明度）
-    star.opacity += random(-15, 15);
-    star.opacity = constrain(star.opacity, 50, 255);
-    
-    // 只在臉部顯示區域（中央 50% 寬高）以外的地方繪製星星
-    // 稍微放寬判定，讓視覺更自然
-    if (star.x < width * 0.2 || star.x > width * 0.8 || star.y < height * 0.2 || star.y > height * 0.8) {
-      fill(255, star.opacity);
-      circle(star.x, star.y, star.size);
-    }
-  }
   pop();
+
+  if (stars.length === 0) reinitStars();
 }
 
 function windowResized() {
