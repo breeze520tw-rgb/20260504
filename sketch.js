@@ -64,10 +64,20 @@ function draw() {
 
   push();
   translate(width / 2, height / 2);
-  scale(-1, 1); // 鏡像
-
+  
+  // --- 核心修正：計算維持比例的寬高 ---
+  let videoRatio = capture.width / capture.height;
   let imgW = width * 0.5;
-  let imgH = height * 0.5;
+  let imgH = imgW / videoRatio;
+
+  // 如果高度超過畫布的 50%，則改以高度為基準
+  if (imgH > height * 0.5) {
+    imgH = height * 0.5;
+    imgW = imgH * videoRatio;
+  }
+  // --------------------------------
+
+  scale(-1, 1); // 水平鏡像
 
   if (faces.length > 0) {
     let face = faces[0];
@@ -133,6 +143,15 @@ function draw() {
     // 重設發光效果，避免影響到後續其他的繪製動作
     drawingContext.shadowBlur = 0;
   }
+  pop();
+
+  // 在畫面上方正中間顯示兩行白色文字
+  push();
+  fill(255);          // 白色
+  noStroke();         // 確保文字沒有外框線
+  textSize(32);       // 設定文字大小
+  textAlign(CENTER, TOP); 
+  text("414xxx183\n王o崴", width / 2, 20); // \n 代表換行
   pop();
 
   if (stars.length === 0) reinitStars();
